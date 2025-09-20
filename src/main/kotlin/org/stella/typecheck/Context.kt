@@ -1,13 +1,6 @@
 package org.stella.typecheck
 
 import org.syntax.stella.Absyn.*
-import kotlin.apply
-import kotlin.collections.asReversed
-import kotlin.collections.firstNotNullOfOrNull
-import kotlin.collections.last
-import kotlin.collections.plusAssign
-import kotlin.collections.removeLast
-import kotlin.collections.set
 
 class Context {
     private val variableScopes = mutableListOf(linkedMapOf<String, Type>())
@@ -36,14 +29,14 @@ class Context {
     }
 
     fun addVariable(name: String, type: Type) {
-        variableScopes.last()[name] set type
+        variableScopes.last()[name] = type
     }
 
     fun lookupVariable(name: String): Type? =
         variableScopes.asReversed().firstNotNullOfOrNull { it[name] }
 
     fun addFunction(name: String, type: Type) {
-        functionTypes[name] set type
+        functionTypes[name] = type
         if (name == "main") _hasMainFunction = true
     }
 
@@ -53,7 +46,7 @@ class Context {
         get() = _hasMainFunction
 
     fun addExtension(name: String) {
-        extensions plusAssign name
+        extensions + name
     }
 
     fun hasExtension(name: String): Boolean = name in extensions

@@ -82,40 +82,40 @@ object TypeUtils {
     }
 
 
-    fun isEqualSubtypes(subtype: Type, supertype: Type, context: Context): Boolean {
+    fun isEqualSubtypes(subtype: Type, supertype: Type, typeEnv: TypeEnv): Boolean {
         if (isEqual(subtype, supertype)) return true
 
         return when {
             subtype is TypeRecord && supertype is TypeRecord ->
-                isRecordSubtype(subtype, supertype, context)
+                isRecordSubtype(subtype, supertype, typeEnv)
 
             subtype is TypeVariant && supertype is TypeVariant ->
-                isVariantSubtype(subtype, supertype, context)
+                isVariantSubtype(subtype, supertype, typeEnv)
 
             subtype is TypeFun && supertype is TypeFun ->
-                isFunctionSubtype(subtype, supertype, context)
+                isFunctionSubtype(subtype, supertype, typeEnv)
 
             subtype is TypeRef && supertype is TypeRef ->
                 isEqual(subtype.type_, supertype.type_)
 
             subtype is TypeList && supertype is TypeList ->
-                isEqualSubtypes(subtype.type_, supertype.type_, context)
+                isEqualSubtypes(subtype.type_, supertype.type_, typeEnv)
 
             subtype is TypeTuple && supertype is TypeTuple ->
                 subtype.listtype_.size == supertype.listtype_.size &&
                         subtype.listtype_.indices.all {
-                            isEqualSubtypes(subtype.listtype_[it], supertype.listtype_[it], context)
+                            isEqualSubtypes(subtype.listtype_[it], supertype.listtype_[it], typeEnv)
                         }
 
             subtype is TypeSum && supertype is TypeSum ->
-                isEqualSubtypes(subtype.type_1, supertype.type_1, context) &&
-                        isEqualSubtypes(subtype.type_2, supertype.type_2, context)
+                isEqualSubtypes(subtype.type_1, supertype.type_1, typeEnv) &&
+                        isEqualSubtypes(subtype.type_2, supertype.type_2, typeEnv)
 
             else -> false
         }
     }
 
-    fun isRecordSubtype(subRecord: TypeRecord, superRecord: TypeRecord, context: Context): Boolean {
+    fun isRecordSubtype(subRecord: TypeRecord, superRecord: TypeRecord, typeEnv: TypeEnv): Boolean {
         for (superField in superRecord.listrecordfieldtype_) {
             if (superField is ARecordFieldType) {
                 val fieldName = superField.stellaident_
@@ -125,7 +125,7 @@ object TypeUtils {
                     .firstOrNull { it.stellaident_ == fieldName }
                     ?.type_
 
-                if (subFieldType == null || !isEqualSubtypes(subFieldType, superFieldType, context)) {
+                if (subFieldType == null || !isEqualSubtypes(subFieldType, superFieldType, typeEnv)) {
                     return false
                 }
             }
@@ -136,7 +136,7 @@ object TypeUtils {
     fun isVariantSubtype(
         subVariant: TypeVariant,
         superVariant: TypeVariant,
-        context: Context
+        typeEnv: TypeEnv
     ): Boolean {
         for (subField in subVariant.listvariantfieldtype_) {
             if (subField is AVariantFieldType) {
@@ -151,7 +151,7 @@ object TypeUtils {
                         found = when {
                             subFieldType == null && superFieldType == null -> true
                             subFieldType != null && superFieldType != null ->
-                                isEqualSubtypes(subFieldType, superFieldType, context)
+                                isEqualSubtypes(subFieldType, superFieldType, typeEnv)
 
                             else -> false
                         }
@@ -165,7 +165,7 @@ object TypeUtils {
         return true
     }
 
-    fun isFunctionSubtype(subFun: TypeFun, superFun: TypeFun, context: Context): Boolean {
+    fun isFunctionSubtype(subFun: TypeFun, superFun: TypeFun, typeEnv: TypeEnv): Boolean {
         if (subFun.listtype_.size != 1 || superFun.listtype_.size != 1) return false
 
         val subParam = subFun.listtype_[0]
@@ -173,8 +173,8 @@ object TypeUtils {
         val subReturn = subFun.type_
         val superReturn = superFun.type_
 
-        val paramCheck = isEqualSubtypes(superParam, subParam, context)
-        val returnCheck = isEqualSubtypes(subReturn, superReturn, context)
+        val paramCheck = isEqualSubtypes(superParam, subParam, typeEnv)
+        val returnCheck = isEqualSubtypes(subReturn, superReturn, typeEnv)
 
         if (!paramCheck && subParam is TypeRecord && superParam is TypeRecord) {
             if (!hasAllRequiredFields(superParam, subParam)) return false
@@ -214,7 +214,7 @@ object TypeUtils {
         return (functionType as? TypeFun)?.type_
     }
 
-    fun getTupleComponentType(tupleType: Type?, index: Int): Type? {
+    fun getTupleTypeByIndex(tupleType: Type?, index: Int): Type? {
         return (tupleType as? TypeTuple)?.let {
             if (index >= 1 && index <= it.listtype_.size) it.listtype_[index - 1] else null
         }

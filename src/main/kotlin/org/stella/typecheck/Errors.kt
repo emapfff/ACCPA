@@ -1,6 +1,6 @@
 package org.stella.typecheck
 
-object TypeCheckException {
+object Errors {
     const val ERROR_UNEXPECTED_TYPE_FOR_PARAMETER = "ERROR_UNEXPECTED_TYPE_FOR_PARAMETER"
     const val ERROR_UNEXPECTED_TYPE_FOR_EXPRESSION = "ERROR_UNEXPECTED_TYPE_FOR_EXPRESSION"
     const val ERROR_NOT_A_FUNCTION = "ERROR_NOT_A_FUNCTION"

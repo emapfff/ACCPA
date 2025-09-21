@@ -2,7 +2,7 @@ package org.stella.typecheck
 
 import org.syntax.stella.Absyn.*
 
-class Context {
+class TypeEnv {
     private val variableScopes = mutableListOf(linkedMapOf<String, Type>())
     private val functionTypes = linkedMapOf<String, Type>()
     private val extensions = linkedSetOf<String>()
@@ -22,9 +22,9 @@ class Context {
         addFunction("Nat::iszero", isZeroType)
     }
 
-    fun pushScope() = variableScopes.add(linkedMapOf())
+    fun enterScope() = variableScopes.add(linkedMapOf())
 
-    fun popScope() {
+    fun leaveScope() {
         if (variableScopes.size > 1) variableScopes.removeLast()
     }
 
@@ -32,7 +32,7 @@ class Context {
         variableScopes.last()[name] = type
     }
 
-    fun lookupVariable(name: String): Type? =
+    fun findVariable(name: String): Type? =
         variableScopes.asReversed().firstNotNullOfOrNull { it[name] }
 
     fun addFunction(name: String, type: Type) {
@@ -40,14 +40,12 @@ class Context {
         if (name == "main") _hasMainFunction = true
     }
 
-    fun lookupFunction(name: String): Type? = functionTypes[name]
+    fun findFunction(name: String): Type? = functionTypes[name]
 
     val hasMainFunction: Boolean
         get() = _hasMainFunction
 
-    fun addExtension(name: String) {
-        extensions + name
-    }
+    fun addExtension(name: String) = extensions + name
 
     fun hasExtension(name: String): Boolean = name in extensions
 

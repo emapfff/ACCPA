@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.stella.eval.Eval
-import org.stella.typecheck.TypeCheck
+import org.stella.typecheck.VisitTypeCheck
 import org.syntax.stella.Absyn.Expr
 import org.syntax.stella.Absyn.Program
 import org.syntax.stella.PrettyPrinter
@@ -41,9 +41,9 @@ fun main(args: Array<String> = emptyArray()) {
 
     try {
         val ast: Program = p.start_Program().result
-        val typechecker = TypeCheck
+        val v = VisitTypeCheck()
+        ast.accept(v.ProgramVisitor(), null )
         val evaluator = Eval
-        typechecker.typecheckProgram(ast)
         if (args.isNotEmpty()) {
             p = createParser(CharStreams.fromStream(System.`in`))
             val ec: stellaParser.Start_ExprContext = p.start_Expr()

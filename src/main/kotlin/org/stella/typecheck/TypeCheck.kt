@@ -432,7 +432,7 @@ class VisitTypeCheck {
                             "Expected an expression of a non-function type but got an anonymous function:\n$valueType")
                     }
                     if (binding.pattern_ is PatternVar) {
-                        newScope.contextHolder[binding.pattern_.stellaident_] = valueType
+                        newScope.contextHolder[(binding.pattern_ as PatternVar).stellaident_] = valueType
                     } else {
                         throw TypingException(TypingExceptionTypes.ERROR_UNEXPECTED_TYPE_FOR_EXPRESSION)
                     }
@@ -463,20 +463,19 @@ class VisitTypeCheck {
                 }
             }
 
-            lambdaScope.expectedType = when (arg.functionReturnType) {
-                is TypeSum -> null
-                is TypeFun -> (arg.functionReturnType as TypeFun).type_
+            lambdaScope.expectedType = when {
+                arg.functionReturnType is TypeSum -> null
+                arg.functionReturnType is TypeFun -> (arg.functionReturnType as TypeFun).type_
                 else -> arg.functionReturnType
             }
 
             lambdaScope.exceptionType = arg.exceptionType
             val bodyType = p.expr_.accept(this, lambdaScope)
 
-            when (p.expr_) {
-                is Throw -> throw TypingException(TypingExceptionTypes.ERROR_AMBIGUOUS_THROW_TYPE,
+            when {
+                p.expr_ is Throw -> throw TypingException(TypingExceptionTypes.ERROR_AMBIGUOUS_THROW_TYPE,
                     "Cannot infer type for throw (use type ascriptions or enable #ambiguous-type-as-bottom).")
-
-                is Panic -> throw TypingException(TypingExceptionTypes.ERROR_AMBIGUOUS_PANIC_TYPE,
+                p.expr_ is Panic -> throw TypingException(TypingExceptionTypes.ERROR_AMBIGUOUS_PANIC_TYPE,
                     "Cannot infer type for panic (use type ascriptions or enable #ambiguous-type-as-bottom).")
             }
 
@@ -664,16 +663,27 @@ class VisitTypeCheck {
                 arg.functionReturnType as TypeSum
 
             while (expectedSum.type_2 is TypeSum) {
-                expectedSum = expectedSum.type_2
+                expectedSum = expectedSum.type_2 as TypeSum
             }
 
             if (innerType is TypeFun && expectedSum.type_2 is TypeFun) {
-                val expectedFunType = expectedSum.type_2
-                val actualFunType = innerType
+                val expectedFunType = expectedSum.type_2 as TypeFun
+                val actualFunType = innerType as TypeFun
                 if (actualFunType.listtype_ != expectedFunType.listtype_ ||
                     actualFunType.type_ != expectedFunType.type_) {
                     throw TypingException(TypingExceptionTypes.ERROR_UNEXPECTED_TYPE_FOR_EXPRESSION,
                         "Expected function type $expectedFunType but got $actualFunType")
+                }
+                return TypeSum(expectedSum.type_1, innerType)
+            }
+
+            if (innerType is TypeSum && expectedSum.type_2 is TypeSum) {
+                val innerSum = innerType
+                val expectedInnerSum = expectedSum.type_2 as TypeSum
+                if (innerSum.type_1 != expectedInnerSum.type_1 ||
+                    innerSum.type_2 != expectedInnerSum.type_2) {
+                    throw TypingException(TypingExceptionTypes.ERROR_UNEXPECTED_TYPE_FOR_EXPRESSION,
+                        "Expected type $expectedInnerSum but got $innerSum")
                 }
                 return TypeSum(expectedSum.type_1, innerType)
             }
@@ -836,9 +846,9 @@ class VisitTypeCheck {
                                 }
                                 matchCase.pattern_ is PatternInr -> {
                                     hasInrCase = true
-                                    val inr = matchCase.pattern_
+                                    val inr = matchCase.pattern_ as PatternInr
                                     if (inr.pattern_ is PatternVar) {
-                                        val pv = inr.pattern_
+                                        val pv = inr.pattern_ as PatternVar
                                         caseScope.contextHolder[pv.stellaident_] = matchExprType.type_2
                                     }
                                     isPatternValid = true
@@ -849,7 +859,7 @@ class VisitTypeCheck {
                         matchExprType is TypeBool && (matchCase.pattern_ is PatternTrue || matchCase.pattern_ is PatternFalse) -> isPatternValid = true
                         matchExprType is TypeList && matchCase.pattern_ is PatternList -> isPatternValid = true
                         matchCase.pattern_ is PatternVar -> {
-                            val pv = matchCase.pattern_
+                            val pv = matchCase.pattern_ as PatternVar
                             caseScope.contextHolder[pv.stellaident_] = matchExprType
                             isPatternValid = true
                         }

@@ -1,7 +1,6 @@
 package org.stella.typecheck
 
 enum class TypingExceptionTypes(val defaultMessage: String) {
-    // General Errors
     ERROR_MISSING_MAIN("A program is missing a main function"),
     ERROR_UNEXPECTED_TYPE_FOR_PARAMETER("Unexpected type specified for a parameter"),
     ERROR_UNEXPECTED_TYPE_FOR_EXPRESSION("Type of an expression does not match the expected type"),
@@ -9,17 +8,14 @@ enum class TypingExceptionTypes(val defaultMessage: String) {
     ERROR_NOT_A_FUNCTION("Unexpected expression where a function is expected"),
     ERROR_UNDEFINED_VARIABLE("Undefined variable in an expression"),
 
-    // Errors for Sum Types
     ERROR_AMBIGUOUS_SUM_TYPE("Cannot typecheck an expression of a sum type because the other half of the type is unknown"),
     ERROR_NONEXHAUSTIVE_MATCH_PATTERNS("Match-expression is missing cases for sum types"),
     ERROR_ILLEGAL_EMPTY_MATCHING("Match-expression does not have any patterns"),
     ERROR_UNEXPECTED_PATTERN_FOR_TYPE("Pattern in a match-expression does not match the expected type"),
 
-    // Errors for Lists
     ERROR_AMBIGUOUS_LIST_TYPE("Cannot typecheck an expression of a list type because the type of its elements is unknown"),
     ERROR_NOT_A_LIST("Unexpected expression where a list is expected"),
 
-    // Errors for Memory and References
     ERROR_AMBIGUOUS_REFERENCE_TYPE("Bare memory address found without an expected type"),
     ERROR_AMBIGUOUS_PANIC_TYPE("Panic expression found without an expected type"),
     ERROR_NOT_A_REFERENCE("Attempted to assign or dereference a non-reference type"),
@@ -28,7 +24,6 @@ enum class TypingExceptionTypes(val defaultMessage: String) {
     ERROR_NOT_A_RECORD("Unexpected expression where a record is expected"),
     ERROR_UNEXPECTED_FIELD_ACCESS("Attempted to access a field that is not present in the record"),
 
-    // Exception Mechanism Errors
     ERROR_EXCEPTION_TYPE_NOT_DECLARED("Exception mechanism used without a globally declared exception type"),
     ERROR_AMBIGUOUS_THROW_TYPE("Cannot infer the type of a throw expression"),
 
